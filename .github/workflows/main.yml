@@ -29,6 +29,7 @@ jobs:
           ./elm make src/Main.elm --output=main.js
           mkdir build
           mv assets index.html main.js build
+          
       - name: Deploy 🚀
         uses: JamesIves/github-pages-deploy-action@4.1.4
         with:

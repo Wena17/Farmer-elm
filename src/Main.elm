@@ -7,7 +7,7 @@ import Html.Events exposing (onClick)
 
 
 main =
-    Browser.sandbox { init = init, update = update, view = view }
+    Browser.element { init = init, update = update, view = view, subscriptions = subscriptions }
 
 
 type alias Model =
@@ -33,8 +33,9 @@ type alias Product =
     }
 
 
-init =
-    { user = Guest, products = Just [ exampleProduct, exampleProduct2 ] }
+init : () -> ( Model, Cmd Msg )
+init _ =
+    ( { user = Guest, products = Just [ exampleProduct, exampleProduct2 ] }, Cmd.none )
 
 
 exampleProduct =
@@ -63,10 +64,16 @@ type Msg
     = LogIn String
 
 
+subscriptions : Model -> Sub Msg
+subscriptions _ =
+    Sub.none
+
+
 
 -- View
 
 
+view : Model -> Html Msg
 view model =
     div []
         [ navbar model
@@ -129,7 +136,8 @@ navUser model =
 -- Update
 
 
+update : Msg -> Model -> ( Model, Cmd Msg )
 update msg model =
     case msg of
         LogIn userName ->
-            model
+            ( model, Cmd.none )

@@ -98,7 +98,7 @@ view model =
                         div [ class "row gap-5" ] (List.map productToCard prodList)
 
                     else
-                        p [] [ text "No products available." ]
+                        p [] [ text "No products currently available." ]
             ]
         ]
 
@@ -149,15 +149,19 @@ navUser model =
 
 update : Msg -> Model -> ( Model, Cmd Msg )
 update msg model =
+    let
+        m =
+            { model | message = Nothing }
+    in
     case msg of
         LogIn userName ->
-            ( model, Cmd.none )
+            ( m, Cmd.none )
 
         GotProducts (Ok prodList) ->
-            ( { model | products = Just prodList }, Cmd.none )
+            ( { m | products = Just prodList }, Cmd.none )
 
         GotProducts (Err e) ->
-            ( { model | message = Just (httpErrorToString e) }, Cmd.none )
+            ( { m | message = Just (httpErrorToString e) }, Cmd.none )
 
 
 httpErrorToString : Http.Error -> String

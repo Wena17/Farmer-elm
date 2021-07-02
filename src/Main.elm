@@ -22,7 +22,7 @@ type User
 
 type alias Product =
     { id : Int
-    , imgUrl : String
+    , imgUrl : Maybe String
     , name : String
     , prodType : String
 
@@ -37,31 +37,9 @@ type alias Product =
 
 init : () -> ( Model, Cmd Msg )
 init _ =
-    ( { message = Just "Loading", user = Guest, products = Just [ exampleProduct, exampleProduct2 ] }
+    ( { message = Just "Loading", user = Guest, products = Nothing }
     , Http.get { url = "http://localhost:3000/products", expect = Http.expectJson GotProducts productsDecoder }
     )
-
-
-exampleProduct =
-    { id = 1
-    , imgUrl = "/assets/strawberry.jpg"
-    , name = "Strawberry"
-    , prodType = "fruit"
-    , quantity = 7
-    , price = 350
-    , unit = "kg"
-    }
-
-
-exampleProduct2 =
-    { id = 1
-    , imgUrl = "/assets/broccoli.jpg"
-    , name = "Broccoli"
-    , prodType = "vegetable"
-    , quantity = 3
-    , price = 150
-    , unit = "kg"
-    }
 
 
 type Msg
@@ -106,7 +84,12 @@ view model =
 productToCard : Product -> Html Msg
 productToCard product =
     div [ class "card col-lg-4" ]
-        [ img [ src product.imgUrl, alt "An image of the product", class "card-img-top pt-3" ] []
+        [ case product.imgUrl of
+            Nothing ->
+                text ""
+
+            Just url ->
+                img [ src url, alt "An image of the product", class "card-img-top pt-3" ] []
         , div [ class "card-body" ]
             [ h5 [] [ text product.name ]
             , p [ class "card-text" ] [ text ("Available: " ++ String.fromInt product.quantity) ]
@@ -196,9 +179,9 @@ productDecoder : Decoder Product
 productDecoder =
     D.map7 Product
         (D.field "id" D.int)
-        (D.field "imgUrl" D.string)
+        (D.field "imgUrl" (D.nullable D.string))
         (D.field "name" D.string)
-        (D.field "prodType" D.string)
+        (D.field "prod_type" D.string)
         (D.field "quantity" D.int)
         (D.field "price" D.int)
         (D.field "unit" D.string)

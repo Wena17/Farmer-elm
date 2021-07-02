@@ -4,6 +4,8 @@ import Browser
 import Html exposing (..)
 import Html.Attributes exposing (alt, attribute, class, id, src, type_)
 import Html.Events exposing (onClick)
+import Http
+import Json.Decode as D exposing (Decoder)
 
 
 main =
@@ -11,7 +13,7 @@ main =
 
 
 type alias Model =
-    { user : User, products : Maybe (List Product) }
+    { message : Maybe String, user : User, products : Maybe (List Product) }
 
 
 type User
@@ -35,7 +37,9 @@ type alias Product =
 
 init : () -> ( Model, Cmd Msg )
 init _ =
-    ( { user = Guest, products = Just [ exampleProduct, exampleProduct2 ] }, Cmd.none )
+    ( { message = Just "Loading", user = Guest, products = Just [ exampleProduct, exampleProduct2 ] }
+    , Http.get { url = "http://localhost:3000/products", expect = Http.expectJson GotProducts productsDecoder }
+    )
 
 
 exampleProduct =
@@ -62,6 +66,7 @@ exampleProduct2 =
 
 type Msg
     = LogIn String
+    | GotProducts (Result Http.Error (List Product))
 
 
 subscriptions : Model -> Sub Msg
@@ -78,7 +83,13 @@ view model =
     div []
         [ navbar model
         , div [ class "container" ]
-            [ case model.products of
+            [ case model.message of
+                Nothing ->
+                    text ""
+
+                Just m ->
+                    p [ class "alert alert-primary" ] [ text m ]
+            , case model.products of
                 Nothing ->
                     p [] [ text "Products not yet loaded." ]
 
@@ -141,3 +152,49 @@ update msg model =
     case msg of
         LogIn userName ->
             ( model, Cmd.none )
+
+        GotProducts (Ok prodList) ->
+            ( { model | products = Just prodList }, Cmd.none )
+
+        GotProducts (Err e) ->
+            ( { model | message = Just (httpErrorToString e) }, Cmd.none )
+
+
+httpErrorToString : Http.Error -> String
+httpErrorToString e =
+    case e of
+        Http.BadUrl s ->
+            "Bad URL: " ++ s
+
+        Http.Timeout ->
+            "Timeout"
+
+        Http.NetworkError ->
+            "Network error"
+
+        Http.BadStatus s ->
+            "Bad return code: " ++ String.fromInt s
+
+        Http.BadBody s ->
+            "Could not parse the response: " ++ s
+
+
+
+-- JSON Decode
+
+
+productsDecoder : Decoder (List Product)
+productsDecoder =
+    D.list productDecoder
+
+
+productDecoder : Decoder Product
+productDecoder =
+    D.map7 Product
+        (D.field "id" D.int)
+        (D.field "imgUrl" D.string)
+        (D.field "name" D.string)
+        (D.field "prodType" D.string)
+        (D.field "quantity" D.int)
+        (D.field "price" D.int)
+        (D.field "unit" D.string)

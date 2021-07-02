@@ -27,4 +27,4 @@ jobs:
       - name: Setting permissions
         run: chmod +x elm
       - name: Build
-        run: elm/elm make src/Main.elm --output=main.js
+        run: ./elm make src/Main.elm --output=main.js

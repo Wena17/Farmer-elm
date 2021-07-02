@@ -19,12 +19,18 @@ jobs:
   build:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v2
-      - name: Downloading elm
-        run: curl -L -o elm.gz https://github.com/elm/compiler/releases/download/0.19.1/binary-for-linux-64-bit.gz
-      - name: Unzipping
-        run: gunzip elm.gz
-      - name: Setting permissions
-        run: chmod +x elm
-      - name: Build
-        run: ./elm make src/Main.elm --output=main.js
+      - name: name: Checkout 🛎️
+        uses: actions/checkout@v2
+      - name: Install and Build 🔧
+        run: |
+          curl -L -o elm.gz https://github.com/elm/compiler/releases/download/0.19.1/binary-for-linux-64-bit.gz
+          gunzip elm.gz
+          chmod +x elm
+          ./elm make src/Main.elm --output=main.js
+          mkdir build
+          mv assets index.html main.js build
+      - name: Deploy 🚀
+        uses: JamesIves/github-pages-deploy-action@4.1.4
+        with:
+          branch: gh-pages # The branch the action should deploy to.
+          folder: build # The folder the action should deploy.

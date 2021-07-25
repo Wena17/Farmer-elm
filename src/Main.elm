@@ -4,18 +4,25 @@ import Browser
 import Html exposing (..)
 import Html.Attributes exposing (alt, attribute, class, id, src, type_)
 import Html.Events exposing (onClick)
+import Http
+import Json.Decode as Decode exposing (Decoder)
 
 
 main =
-    Browser.sandbox { init = init, update = update, view = view }
+    Browser.element { init = init, update = update, view = view, subscriptions = subscriptions }
 
 
 type alias Model =
-    { user : User, products : Maybe (List Product) }
+    { user : User, products : Maybe (List Product), note : Maybe String }
 
 
 type User
     = Guest
+
+
+type Msg
+    = GotProducts (Result Http.Error (List Product))
+    | LogIn String
 
 
 type alias Product =
@@ -33,11 +40,19 @@ type alias Product =
     }
 
 
-init =
-    { user = Guest, products = Just [ exampleProduct, exampleProduct2 ] }
+init : () -> ( Model, Cmd Msg )
+init _ =
+    ( { user = Guest, products = Nothing, note = Nothing }
+    , Http.get { url = "http://localhost:3000/products", expect = Http.expectJson GotProducts productsDecoder }
+    )
 
 
-exampleProduct =
+subscriptions : Model -> Sub Msg
+subscriptions _ =
+    Sub.none
+
+
+exampleProduct1 =
     { id = 1
     , imgUrl = "/assets/strawberry.jpg"
     , name = "Strawberry"
@@ -59,10 +74,6 @@ exampleProduct2 =
     }
 
 
-type Msg
-    = LogIn String
-
-
 
 -- View
 
@@ -71,7 +82,13 @@ view model =
     div []
         [ navbar model
         , div [ class "container" ]
-            [ case model.products of
+            [ case model.note of
+                Just s ->
+                    p [] [ text s ]
+
+                Nothing ->
+                    text ""
+            , case model.products of
                 Nothing ->
                     p [] [ text "Products not yet loaded." ]
 
@@ -129,7 +146,48 @@ navUser model =
 -- Update
 
 
+update : Msg -> Model -> ( Model, Cmd Msg )
 update msg model =
+    let
+        newModel =
+            { model | note = Nothing }
+    in
     case msg of
         LogIn userName ->
-            model
+            ( newModel, Cmd.none )
+
+        GotProducts result ->
+            case result of
+                Err e ->
+                    ( { newModel | note = Just (httpErrorToString e) }, Cmd.none )
+
+                Ok products ->
+                    ( { newModel | products = Just products }, Cmd.none )
+
+
+httpErrorToString : Http.Error -> String
+httpErrorToString e =
+    case e of
+        Http.BadUrl s ->
+            "Bad URL: " ++ s
+
+        Http.Timeout ->
+            "Timeout"
+
+        Http.NetworkError ->
+            "Network error"
+
+        Http.BadStatus statusCode ->
+            "Bad status code: " ++ String.fromInt statusCode
+
+        Http.BadBody s ->
+            "Bad body: " ++ s
+
+
+
+-- JSON
+
+
+productsDecoder : Decoder (List Product)
+productsDecoder =
+    Decode.succeed [ exampleProduct1, exampleProduct2 ]

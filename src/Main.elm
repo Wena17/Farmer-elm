@@ -32,8 +32,8 @@ type alias Product =
     , prodType : String
 
     --TODO harvest and expiration dates
-    , quantity : Int
-    , price : Int
+    , quantity : Float
+    , price : Float
     , unit : String
 
     --TODO seller
@@ -108,7 +108,8 @@ productToCard product =
         [ img [ src product.imgUrl, alt "An image of the product", class "card-img-top pt-3" ] []
         , div [ class "card-body" ]
             [ h5 [] [ text product.name ]
-            , p [ class "card-text" ] [ text ("Available: " ++ String.fromInt product.quantity) ]
+            , p [ class "card-text" ] [ text ("Available: " ++ String.fromFloat product.quantity) ]
+            , p [ class "card-text" ] [ text ("Price: " ++ String.fromFloat product.price) ]
             , a [ class "btn btn-primary btn-sm" ] [ text "Add to cart" ]
             ]
         ]
@@ -190,4 +191,13 @@ httpErrorToString e =
 
 productsDecoder : Decoder (List Product)
 productsDecoder =
-    Decode.succeed [ exampleProduct1, exampleProduct2 ]
+    Decode.list
+        (Decode.map7 Product
+            (Decode.field "id" Decode.int)
+            (Decode.succeed "/something.png")
+            (Decode.field "name" Decode.string)
+            (Decode.field "prodType" Decode.string)
+            (Decode.field "quantity" Decode.float)
+            (Decode.field "price" Decode.float)
+            (Decode.field "unit" Decode.string)
+        )

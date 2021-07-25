@@ -6110,11 +6110,27 @@ var $elm$http$Http$get = function (r) {
 	return $elm$http$Http$request(
 		{body: $elm$http$Http$emptyBody, expect: r.expect, headers: _List_Nil, method: 'GET', timeout: $elm$core$Maybe$Nothing, tracker: $elm$core$Maybe$Nothing, url: r.url});
 };
-var $author$project$Main$exampleProduct1 = {id: 1, imgUrl: '/assets/strawberry.jpg', name: 'Strawberry', price: 350, prodType: 'fruit', quantity: 7, unit: 'kg'};
-var $author$project$Main$exampleProduct2 = {id: 1, imgUrl: '/assets/broccoli.jpg', name: 'Broccoli', price: 150, prodType: 'vegetable', quantity: 3, unit: 'kg'};
-var $author$project$Main$productsDecoder = $elm$json$Json$Decode$succeed(
-	_List_fromArray(
-		[$author$project$Main$exampleProduct1, $author$project$Main$exampleProduct2]));
+var $author$project$Main$Product = F7(
+	function (id, imgUrl, name, prodType, quantity, price, unit) {
+		return {id: id, imgUrl: imgUrl, name: name, price: price, prodType: prodType, quantity: quantity, unit: unit};
+	});
+var $elm$json$Json$Decode$field = _Json_decodeField;
+var $elm$json$Json$Decode$float = _Json_decodeFloat;
+var $elm$json$Json$Decode$int = _Json_decodeInt;
+var $elm$json$Json$Decode$list = _Json_decodeList;
+var $elm$json$Json$Decode$map7 = _Json_map7;
+var $elm$json$Json$Decode$string = _Json_decodeString;
+var $author$project$Main$productsDecoder = $elm$json$Json$Decode$list(
+	A8(
+		$elm$json$Json$Decode$map7,
+		$author$project$Main$Product,
+		A2($elm$json$Json$Decode$field, 'id', $elm$json$Json$Decode$int),
+		$elm$json$Json$Decode$succeed('/something.png'),
+		A2($elm$json$Json$Decode$field, 'name', $elm$json$Json$Decode$string),
+		A2($elm$json$Json$Decode$field, 'prodType', $elm$json$Json$Decode$string),
+		A2($elm$json$Json$Decode$field, 'quantity', $elm$json$Json$Decode$float),
+		A2($elm$json$Json$Decode$field, 'price', $elm$json$Json$Decode$float),
+		A2($elm$json$Json$Decode$field, 'unit', $elm$json$Json$Decode$string)));
 var $author$project$Main$init = function (_v0) {
 	return _Utils_Tuple2(
 		{note: $elm$core$Maybe$Nothing, products: $elm$core$Maybe$Nothing, user: $author$project$Main$Guest},
@@ -6333,6 +6349,7 @@ var $author$project$Main$navbar = function (model) {
 };
 var $elm$html$Html$p = _VirtualDom_node('p');
 var $elm$html$Html$Attributes$alt = $elm$html$Html$Attributes$stringProperty('alt');
+var $elm$core$String$fromFloat = _String_fromNumber;
 var $elm$html$Html$h5 = _VirtualDom_node('h5');
 var $elm$html$Html$img = _VirtualDom_node('img');
 var $elm$html$Html$Attributes$src = function (url) {
@@ -6383,7 +6400,18 @@ var $author$project$Main$productToCard = function (product) {
 						_List_fromArray(
 							[
 								$elm$html$Html$text(
-								'Available: ' + $elm$core$String$fromInt(product.quantity))
+								'Available: ' + $elm$core$String$fromFloat(product.quantity))
+							])),
+						A2(
+						$elm$html$Html$p,
+						_List_fromArray(
+							[
+								$elm$html$Html$Attributes$class('card-text')
+							]),
+						_List_fromArray(
+							[
+								$elm$html$Html$text(
+								'Price: ' + $elm$core$String$fromFloat(product.price))
 							])),
 						A2(
 						$elm$html$Html$a,

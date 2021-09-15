@@ -6119,17 +6119,26 @@ var $elm$json$Json$Decode$float = _Json_decodeFloat;
 var $elm$json$Json$Decode$int = _Json_decodeInt;
 var $elm$json$Json$Decode$list = _Json_decodeList;
 var $elm$json$Json$Decode$map7 = _Json_map7;
-var $elm$json$Json$Decode$string = _Json_decodeString;
-var $elm$core$String$toFloat = _String_toFloat;
-var $elm$core$Maybe$withDefault = F2(
-	function (_default, maybe) {
-		if (maybe.$ === 'Just') {
-			var value = maybe.a;
-			return value;
+var $elm$json$Json$Decode$andThen = _Json_andThen;
+var $elm$json$Json$Decode$fail = _Json_fail;
+var $elm_community$json_extra$Json$Decode$Extra$fromMaybe = F2(
+	function (error, val) {
+		if (val.$ === 'Just') {
+			var v = val.a;
+			return $elm$json$Json$Decode$succeed(v);
 		} else {
-			return _default;
+			return $elm$json$Json$Decode$fail(error);
 		}
 	});
+var $elm$json$Json$Decode$string = _Json_decodeString;
+var $elm$core$String$toFloat = _String_toFloat;
+var $elm_community$json_extra$Json$Decode$Extra$parseFloat = A2(
+	$elm$json$Json$Decode$andThen,
+	A2(
+		$elm$core$Basics$composeR,
+		$elm$core$String$toFloat,
+		$elm_community$json_extra$Json$Decode$Extra$fromMaybe('failed to parse as float')),
+	$elm$json$Json$Decode$string);
 var $author$project$Main$productsDecoder = $elm$json$Json$Decode$list(
 	A8(
 		$elm$json$Json$Decode$map7,
@@ -6139,15 +6148,7 @@ var $author$project$Main$productsDecoder = $elm$json$Json$Decode$list(
 		A2($elm$json$Json$Decode$field, 'name', $elm$json$Json$Decode$string),
 		A2($elm$json$Json$Decode$field, 'prodType', $elm$json$Json$Decode$string),
 		A2($elm$json$Json$Decode$field, 'quantity', $elm$json$Json$Decode$float),
-		A2(
-			$elm$json$Json$Decode$map,
-			function (s) {
-				return A2(
-					$elm$core$Maybe$withDefault,
-					1 / 0,
-					$elm$core$String$toFloat(s));
-			},
-			A2($elm$json$Json$Decode$field, 'price', $elm$json$Json$Decode$string)),
+		A2($elm$json$Json$Decode$field, 'price', $elm_community$json_extra$Json$Decode$Extra$parseFloat),
 		A2($elm$json$Json$Decode$field, 'unit', $elm$json$Json$Decode$string)));
 var $author$project$Main$init = function (_v0) {
 	return _Utils_Tuple2(

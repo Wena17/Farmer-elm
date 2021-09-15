@@ -194,7 +194,7 @@ productsDecoder =
     Decode.list
         (Decode.map7 Product
             (Decode.field "id" Decode.int)
-            (Decode.succeed "/something.png")
+            (Decode.field "imgUrl" Decode.string)
             (Decode.field "name" Decode.string)
             (Decode.field "prodType" Decode.string)
             (Decode.field "quantity" Decode.float)

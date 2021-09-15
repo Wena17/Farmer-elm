@@ -6135,7 +6135,7 @@ var $author$project$Main$productsDecoder = $elm$json$Json$Decode$list(
 		$elm$json$Json$Decode$map7,
 		$author$project$Main$Product,
 		A2($elm$json$Json$Decode$field, 'id', $elm$json$Json$Decode$int),
-		$elm$json$Json$Decode$succeed('/something.png'),
+		A2($elm$json$Json$Decode$field, 'imgUrl', $elm$json$Json$Decode$string),
 		A2($elm$json$Json$Decode$field, 'name', $elm$json$Json$Decode$string),
 		A2($elm$json$Json$Decode$field, 'prodType', $elm$json$Json$Decode$string),
 		A2($elm$json$Json$Decode$field, 'quantity', $elm$json$Json$Decode$float),

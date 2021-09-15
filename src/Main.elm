@@ -6,6 +6,7 @@ import Html.Attributes exposing (alt, attribute, class, id, src, type_)
 import Html.Events exposing (onClick)
 import Http
 import Json.Decode as Decode exposing (Decoder)
+import Json.Decode.Extra
 
 
 main =
@@ -198,9 +199,6 @@ productsDecoder =
             (Decode.field "name" Decode.string)
             (Decode.field "prodType" Decode.string)
             (Decode.field "quantity" Decode.float)
-            (Decode.map
-                (\s -> String.toFloat s |> Maybe.withDefault (1 / 0))
-                (Decode.field "price" Decode.string)
-            )
+            (Decode.field "price" Json.Decode.Extra.parseFloat)
             (Decode.field "unit" Decode.string)
         )

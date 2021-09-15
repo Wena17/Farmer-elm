@@ -198,6 +198,9 @@ productsDecoder =
             (Decode.field "name" Decode.string)
             (Decode.field "prodType" Decode.string)
             (Decode.field "quantity" Decode.float)
-            (Decode.field "price" Decode.float)
+            (Decode.map
+                (\s -> String.toFloat s |> Maybe.withDefault (1 / 0))
+                (Decode.field "price" Decode.string)
+            )
             (Decode.field "unit" Decode.string)
         )

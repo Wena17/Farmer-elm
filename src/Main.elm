@@ -15,7 +15,12 @@ main =
 
 
 type alias Model =
-    { user : User, products : Maybe (List Product), note : Maybe String }
+    { page : Page, user : User, products : Maybe (List Product), note : Maybe String }
+
+
+type Page
+    = Home
+    | Login
 
 
 type User
@@ -24,7 +29,7 @@ type User
 
 type Msg
     = GotProducts (Result Http.Error (List Product))
-    | LogIn String
+    | ChangePage Page
     | GotLoginMsg Page.Login.Msg
 
 
@@ -45,7 +50,7 @@ type alias Product =
 
 init : () -> ( Model, Cmd Msg )
 init _ =
-    ( { user = Guest, products = Nothing, note = Nothing }
+    ( { page = Home, user = Guest, products = Nothing, note = Nothing }
     , Http.get { url = "http://localhost:3000/products", expect = Http.expectJson GotProducts productsDecoder }
     )
 
@@ -53,28 +58,6 @@ init _ =
 subscriptions : Model -> Sub Msg
 subscriptions _ =
     Sub.none
-
-
-exampleProduct1 =
-    { id = 1
-    , imgUrl = "/assets/strawberry.jpg"
-    , name = "Strawberry"
-    , prodType = "fruit"
-    , quantity = 7
-    , price = 350
-    , unit = "kg"
-    }
-
-
-exampleProduct2 =
-    { id = 1
-    , imgUrl = "/assets/broccoli.jpg"
-    , name = "Broccoli"
-    , prodType = "vegetable"
-    , quantity = 3
-    , price = 150
-    , unit = "kg"
-    }
 
 
 
@@ -92,17 +75,21 @@ view model =
 
                 Nothing ->
                     text ""
-            , Html.map GotLoginMsg (Page.Login.view Page.Login.init)
-            , case model.products of
-                Nothing ->
-                    p [] [ text "Products not yet loaded." ]
+            , case model.page of
+                Home ->
+                    case model.products of
+                        Nothing ->
+                            p [] [ text "Products not yet loaded." ]
 
-                Just prodList ->
-                    if List.length prodList > 0 then
-                        div [ class "row gap-5" ] (List.map productToCard prodList)
+                        Just prodList ->
+                            if List.length prodList > 0 then
+                                div [ class "row gap-5" ] (List.map productToCard prodList)
 
-                    else
-                        p [] [ text "No products available." ]
+                            else
+                                p [] [ text "No products available." ]
+
+                Login ->
+                    Html.map GotLoginMsg (Page.Login.view Page.Login.init)
             ]
         ]
 
@@ -133,7 +120,8 @@ navbar model =
                 [ span [ class "navbar-toggler-icon" ] [] ]
             , div [ class "collapse navbar-collapse", id "navbarSupportedContent" ]
                 [ ul [ class "navbar-nav me-auto mb-2 mb-lg-0" ]
-                    [ li [ class "nav-item" ] [ a [ class "nav-link active" ] [ text "Home" ] ]
+                    -- TODO Disable page link of current page
+                    [ li [ class "nav-item" ] [ a [ class "nav-link active", onClick (ChangePage Home) ] [ text "Home" ] ]
                     ]
                 ]
             , navUser model
@@ -145,7 +133,7 @@ navUser model =
     case model.user of
         Guest ->
             -- TODO Implement proper login
-            a [ class "d-flex btn btn-primary btn-sm", onClick (LogIn "Wena") ] [ text "Log in" ]
+            a [ class "d-flex btn btn-primary btn-sm", onClick (ChangePage Login) ] [ text "Log in" ]
 
 
 
@@ -159,8 +147,8 @@ update msg model =
             { model | note = Nothing }
     in
     case msg of
-        LogIn userName ->
-            ( newModel, Cmd.none )
+        ChangePage newPage ->
+            ( { newModel | page = newPage }, Cmd.none )
 
         GotProducts result ->
             case result of

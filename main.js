@@ -6188,33 +6188,40 @@ var $author$project$Main$update = F2(
 		var newModel = _Utils_update(
 			model,
 			{note: $elm$core$Maybe$Nothing});
-		if (msg.$ === 'LogIn') {
-			var userName = msg.a;
-			return _Utils_Tuple2(newModel, $elm$core$Platform$Cmd$none);
-		} else {
-			var result = msg.a;
-			if (result.$ === 'Err') {
-				var e = result.a;
-				return _Utils_Tuple2(
-					_Utils_update(
-						newModel,
-						{
-							note: $elm$core$Maybe$Just(
-								$author$project$Main$httpErrorToString(e))
-						}),
-					$elm$core$Platform$Cmd$none);
-			} else {
-				var products = result.a;
-				return _Utils_Tuple2(
-					_Utils_update(
-						newModel,
-						{
-							products: $elm$core$Maybe$Just(products)
-						}),
-					$elm$core$Platform$Cmd$none);
-			}
+		switch (msg.$) {
+			case 'LogIn':
+				var userName = msg.a;
+				return _Utils_Tuple2(newModel, $elm$core$Platform$Cmd$none);
+			case 'GotProducts':
+				var result = msg.a;
+				if (result.$ === 'Err') {
+					var e = result.a;
+					return _Utils_Tuple2(
+						_Utils_update(
+							newModel,
+							{
+								note: $elm$core$Maybe$Just(
+									$author$project$Main$httpErrorToString(e))
+							}),
+						$elm$core$Platform$Cmd$none);
+				} else {
+					var products = result.a;
+					return _Utils_Tuple2(
+						_Utils_update(
+							newModel,
+							{
+								products: $elm$core$Maybe$Just(products)
+							}),
+						$elm$core$Platform$Cmd$none);
+				}
+			default:
+				var loginMsg = msg.a;
+				return _Utils_Tuple2(newModel, $elm$core$Platform$Cmd$none);
 		}
 	});
+var $author$project$Main$GotLoginMsg = function (a) {
+	return {$: 'GotLoginMsg', a: a};
+};
 var $elm$json$Json$Encode$string = _Json_wrap;
 var $elm$html$Html$Attributes$stringProperty = F2(
 	function (key, string) {
@@ -6225,6 +6232,9 @@ var $elm$html$Html$Attributes$stringProperty = F2(
 	});
 var $elm$html$Html$Attributes$class = $elm$html$Html$Attributes$stringProperty('className');
 var $elm$html$Html$div = _VirtualDom_node('div');
+var $author$project$Page$Login$init = {password: '', userName: ''};
+var $elm$virtual_dom$VirtualDom$map = _VirtualDom_map;
+var $elm$html$Html$map = $elm$virtual_dom$VirtualDom$map;
 var $elm$html$Html$a = _VirtualDom_node('a');
 var $elm$virtual_dom$VirtualDom$attribute = F2(
 	function (key, value) {
@@ -6445,6 +6455,89 @@ var $author$project$Main$productToCard = function (product) {
 					]))
 			]));
 };
+var $elm$html$Html$Attributes$for = $elm$html$Html$Attributes$stringProperty('htmlFor');
+var $elm$html$Html$form = _VirtualDom_node('form');
+var $elm$html$Html$input = _VirtualDom_node('input');
+var $elm$html$Html$label = _VirtualDom_node('label');
+var $elm$html$Html$Attributes$placeholder = $elm$html$Html$Attributes$stringProperty('placeholder');
+var $author$project$Page$Login$view = function (model) {
+	return A2(
+		$elm$html$Html$form,
+		_List_Nil,
+		_List_fromArray(
+			[
+				A2(
+				$elm$html$Html$div,
+				_List_fromArray(
+					[
+						$elm$html$Html$Attributes$class('mb-3')
+					]),
+				_List_fromArray(
+					[
+						A2(
+						$elm$html$Html$label,
+						_List_fromArray(
+							[
+								$elm$html$Html$Attributes$for('userNameField'),
+								$elm$html$Html$Attributes$class('form-label')
+							]),
+						_List_fromArray(
+							[
+								$elm$html$Html$text('User name:')
+							])),
+						A2(
+						$elm$html$Html$input,
+						_List_fromArray(
+							[
+								$elm$html$Html$Attributes$class('form-control'),
+								$elm$html$Html$Attributes$id('userNameField'),
+								$elm$html$Html$Attributes$placeholder('Enter your user name')
+							]),
+						_List_Nil)
+					])),
+				A2(
+				$elm$html$Html$div,
+				_List_fromArray(
+					[
+						$elm$html$Html$Attributes$class('mb-3')
+					]),
+				_List_fromArray(
+					[
+						A2(
+						$elm$html$Html$label,
+						_List_fromArray(
+							[
+								$elm$html$Html$Attributes$for('passwordField'),
+								$elm$html$Html$Attributes$class('form-label')
+							]),
+						_List_fromArray(
+							[
+								$elm$html$Html$text('Password:')
+							])),
+						A2(
+						$elm$html$Html$input,
+						_List_fromArray(
+							[
+								$elm$html$Html$Attributes$type_('password'),
+								$elm$html$Html$Attributes$class('form-control'),
+								$elm$html$Html$Attributes$id('passwordField'),
+								$elm$html$Html$Attributes$placeholder('Enter your password')
+							]),
+						_List_Nil)
+					])),
+				A2(
+				$elm$html$Html$button,
+				_List_fromArray(
+					[
+						$elm$html$Html$Attributes$type_('submit'),
+						$elm$html$Html$Attributes$class('btn btn-primary')
+					]),
+				_List_fromArray(
+					[
+						$elm$html$Html$text('Login')
+					]))
+			]));
+};
 var $author$project$Main$view = function (model) {
 	return A2(
 		$elm$html$Html$div,
@@ -6475,6 +6568,10 @@ var $author$project$Main$view = function (model) {
 							return $elm$html$Html$text('');
 						}
 					}(),
+						A2(
+						$elm$html$Html$map,
+						$author$project$Main$GotLoginMsg,
+						$author$project$Page$Login$view($author$project$Page$Login$init)),
 						function () {
 						var _v1 = model.products;
 						if (_v1.$ === 'Nothing') {

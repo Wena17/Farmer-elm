@@ -8,6 +8,7 @@ import Http
 import Json.Decode as Decode exposing (Decoder)
 import Json.Decode.Extra
 import Page.Login
+import User exposing (User(..))
 
 
 main =
@@ -21,10 +22,6 @@ type alias Model =
 type Page
     = Home
     | Login
-
-
-type User
-    = Guest
 
 
 type Msg
@@ -160,7 +157,11 @@ update msg model =
 
         GotLoginMsg loginMsg ->
             -- TODO Implement this
-            ( newModel, Cmd.none )
+            let
+                ( newLoginModel, loginCmd ) =
+                    Page.Login.update loginMsg
+            in
+            ( { newModel | page = Login newLoginModel }, Cmd.map GotLoginMsg loginCmd )
 
 
 httpErrorToString : Http.Error -> String

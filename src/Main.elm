@@ -7,6 +7,7 @@ import Html.Events exposing (onClick)
 import Http
 import Json.Decode as Decode exposing (Decoder)
 import Json.Decode.Extra
+import Page.Login
 
 
 main =
@@ -24,6 +25,7 @@ type User
 type Msg
     = GotProducts (Result Http.Error (List Product))
     | LogIn String
+    | GotLoginMsg Page.Login.Msg
 
 
 type alias Product =
@@ -79,6 +81,7 @@ exampleProduct2 =
 -- View
 
 
+view : Model -> Html Msg
 view model =
     div []
         [ navbar model
@@ -89,6 +92,7 @@ view model =
 
                 Nothing ->
                     text ""
+            , Html.map GotLoginMsg (Page.Login.view Page.Login.init)
             , case model.products of
                 Nothing ->
                     p [] [ text "Products not yet loaded." ]
@@ -165,6 +169,10 @@ update msg model =
 
                 Ok products ->
                     ( { newModel | products = Just products }, Cmd.none )
+
+        GotLoginMsg loginMsg ->
+            -- TODO Implement this
+            ( newModel, Cmd.none )
 
 
 httpErrorToString : Http.Error -> String

@@ -15,5 +15,8 @@
   "bugs": {
     "url": "https://github.com/Wena17/Farmer-elm/issues"
   },
-  "homepage": "https://github.com/Wena17/Farmer-elm#readme"
+  "homepage": "https://github.com/Wena17/Farmer-elm#readme",
+  "devDependencies": {
+    "uglify-js": "^3.14.2"
+  }
 }

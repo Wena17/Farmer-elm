@@ -4,3 +4,4 @@ elm-stuff
 repl-temp-*
 # Compiled JS
 main.js
+node_modules

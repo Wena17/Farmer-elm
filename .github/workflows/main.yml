@@ -21,21 +21,28 @@ jobs:
     steps:
       - name: Checkout 🛎️
         uses: actions/checkout@v2
-        
+
+      - name: Install Node
+      - uses: actions/setup-node@v2
+          with:
+            node-version: '14'
+      - run: npm install
+      - run: npm test
+
       - name: Install 🔧
         run: |
           curl -L -o elm.gz https://github.com/elm/compiler/releases/download/0.19.1/binary-for-linux-64-bit.gz
           gunzip elm.gz
           chmod +x elm
-        
+
       - name: Make
         run: ./elm make src/Main.elm --output=main.js --optimize
-        
+
       - name: Copy
         run: |
           mkdir build
           mv assets index.html main.js build
-          
+
       - name: Deploy 🚀
         uses: JamesIves/github-pages-deploy-action@4.1.4
         with:

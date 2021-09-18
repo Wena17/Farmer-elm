@@ -28,7 +28,7 @@ jobs:
           node-version: 'lts/*'
       
       - name: Install Node
-        run: npm install --dev
+        run: npm install
 
       - name: Install Elm
         run: |
@@ -39,7 +39,7 @@ jobs:
       - name: Make
         run: |
           ./elm make src/Main.elm --output=main.js --optimize
-          uglifyjs main.js --compress 'pure_funcs=[F2,F3,F4,F5,F6,F7,F8,F9,A2,A3,A4,A5,A6,A7,A8,A9],pure_getters,keep_fargs=false,unsafe_comps,unsafe' | uglifyjs --mangle --output main.min.js
+          ./node_modules/uglify-js/bin/uglifyjs main.js --compress 'pure_funcs=[F2,F3,F4,F5,F6,F7,F8,F9,A2,A3,A4,A5,A6,A7,A8,A9],pure_getters,keep_fargs=false,unsafe_comps,unsafe' | ./node_modules/uglify-js/bin/uglifyjs --mangle --output main.min.js
           mv main-min.js main.js
         
       - name: Copy

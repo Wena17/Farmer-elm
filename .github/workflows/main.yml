@@ -21,7 +21,14 @@ jobs:
     steps:
       - name: Checkout 🛎️
         uses: actions/checkout@v2
-        
+
+      - name: Install Node
+        uses: actions/setup-node@v2
+          with:
+            node-version: '14'
+        run: npm install
+        run: npm test
+
       - name: Install 🔧
         run: |
           curl -L -o elm.gz https://github.com/elm/compiler/releases/download/0.19.1/binary-for-linux-64-bit.gz

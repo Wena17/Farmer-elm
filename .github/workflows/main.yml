@@ -28,7 +28,7 @@ jobs:
           node-version: 'lts/*'
       
       - name: Install Node
-        run: npm install
+        run: npm install --dev
 
       - name: Install Elm
         run: |

@@ -21,7 +21,7 @@ type alias Model =
 
 type Page
     = Home
-    | Login
+    | Login Page.Login.Model
 
 
 type Msg
@@ -85,8 +85,8 @@ view model =
                             else
                                 p [] [ text "No products available." ]
 
-                Login ->
-                    Html.map GotLoginMsg (Page.Login.view Page.Login.init)
+                Login loginModel ->
+                    Html.map GotLoginMsg (Page.Login.view loginModel)
             ]
         ]
 
@@ -130,7 +130,7 @@ navUser model =
     case model.user of
         Guest ->
             -- TODO Implement proper login
-            a [ class "d-flex btn btn-primary btn-sm", onClick (ChangePage Login) ] [ text "Log in" ]
+            a [ class "d-flex btn btn-primary btn-sm", onClick (ChangePage (Login Page.Login.init)) ] [ text "Log in" ]
 
 
 
@@ -143,11 +143,11 @@ update msg model =
         newModel =
             { model | note = Nothing }
     in
-    case msg of
-        ChangePage newPage ->
+    case ( msg, model.page ) of
+        ( ChangePage newPage, _ ) ->
             ( { newModel | page = newPage }, Cmd.none )
 
-        GotProducts result ->
+        ( GotProducts result, _ ) ->
             case result of
                 Err e ->
                     ( { newModel | note = Just (httpErrorToString e) }, Cmd.none )
@@ -155,13 +155,17 @@ update msg model =
                 Ok products ->
                     ( { newModel | products = Just products }, Cmd.none )
 
-        GotLoginMsg loginMsg ->
+        ( GotLoginMsg loginMsg, Login loginModel ) ->
             -- TODO Implement this
             let
                 ( newLoginModel, loginCmd ) =
-                    Page.Login.update loginMsg
+                    Page.Login.update loginMsg loginModel
             in
             ( { newModel | page = Login newLoginModel }, Cmd.map GotLoginMsg loginCmd )
+
+        ( _, _ ) ->
+            -- Silently ignore messages for the wrong page.
+            ( newModel, Cmd.none )
 
 
 httpErrorToString : Http.Error -> String

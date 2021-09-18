@@ -1,76 +1,80 @@
-module Page.Login exposing (Msg, init, update, view)
+module Page.Login exposing (Model, Msg, init, update, view)
 
-import Html exposing (Html, button, div, form, input, label, text)
+import Dict
+import Html exposing (Html, div, input, label, text)
 import Html.Attributes exposing (class, for, id, placeholder, type_)
 import Html.Events exposing (onInput, onSubmit)
 import Http
 import Json.Encode as Encode
-import User exposing (User(..))
+import User exposing (User)
 
 
 type alias Model =
-    { userName : String, password : String }
+    { name : String, password : String }
 
 
 type Msg
     = UsernameChanged String
     | PasswordChanged String
-    | LoginSubmitted
-    | GotResponse (Result Http.Error User)
+    | SubmittedForm
+    | CompletedLogin (Result Http.Error User)
 
 
 init : Model
 init =
-    { userName = "", password = "" }
+    { name = "", password = "" }
 
 
 view : Model -> Html Msg
 view model =
-    form [ onSubmit LoginSubmitted ]
+    Html.form [ onSubmit SubmittedForm ]
         [ div [ class "mb-3" ]
-            [ label [ for "userNameField", class "form-label" ] [ text "User name:" ]
-            , input [ class "form-control", id "userNameField", placeholder "Enter your user name", onInput UsernameChanged ] []
+            [ label [ for "usernameField", class "form-label" ] [ text "Username:" ]
+            , input [ type_ "text", class "form-control", id "usernameField", placeholder "username", onInput UsernameChanged ] []
             ]
         , div [ class "mb-3" ]
             [ label [ for "passwordField", class "form-label" ] [ text "Password:" ]
-            , input [ type_ "password", class "form-control", id "passwordField", placeholder "Enter your password", onInput PasswordChanged ] []
+            , input [ type_ "password", class "form-control", id "passwordField", placeholder "***", onInput PasswordChanged ] []
             ]
-        , button [ type_ "submit", class "btn btn-primary" ] [ text "Login" ]
+        , input [ type_ "submit", class "btn btn-primary" ] [ text "Login" ]
         ]
 
 
 update : Msg -> Model -> ( Model, Cmd Msg )
 update msg model =
+    -- TODO: Implement
     case msg of
         UsernameChanged s ->
-            ( { model | userName = s }, Cmd.none )
+            ( { model | name = s }, Cmd.none )
 
         PasswordChanged s ->
             ( { model | password = s }, Cmd.none )
 
-        LoginSubmitted ->
+        SubmittedForm ->
             ( model
             , Http.post
-                { url = "http://localhost:3000/user/login"
-                , body =
-                    Http.jsonBody
-                        (Encode.object
-                            [ ( "user"
-                              , Encode.object
-                                    [ ( "userName", Encode.string model.userName )
-                                    , ( "password", Encode.string model.password )
-                                    ]
-                              )
-                            ]
-                        )
-                , expect = Http.expectJson GotResponse User.decoder
+                { url = "http://localhost:3000/users/login"
+                , body = Http.jsonBody (modelToJson model)
+                , expect = Http.expectJson CompletedLogin User.decoder
                 }
             )
 
-        GotResponse (Ok user) ->
-            -- TODO Remember user and change to home page
+        CompletedLogin (Ok user) ->
+            -- TODO Implement remembering user and redirect to home page
             ( model, Cmd.none )
 
-        GotResponse (Err e) ->
-            -- TODO Display error message
+        CompletedLogin (Err err) ->
+            -- TODO Implement showing error message
             ( model, Cmd.none )
+
+
+modelToJson : Model -> Encode.Value
+modelToJson model =
+    Encode.object
+        [ ( "user"
+          , Encode.object
+                [ ( "username", Encode.string model.name )
+                , ( "password", Encode.string model.password )
+                ]
+          )
+        ]

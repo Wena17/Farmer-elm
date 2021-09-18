@@ -147,16 +147,13 @@ update msg model =
         ( ChangePage newPage, _ ) ->
             ( { newModel | page = newPage }, Cmd.none )
 
-        ( GotProducts result, _ ) ->
-            case result of
-                Err e ->
-                    ( { newModel | note = Just (httpErrorToString e) }, Cmd.none )
+        ( GotProducts (Err e), _ ) ->
+            ( { newModel | note = Just (httpErrorToString e) }, Cmd.none )
 
-                Ok products ->
-                    ( { newModel | products = Just products }, Cmd.none )
+        ( GotProducts (Ok products), _ ) ->
+            ( { newModel | products = Just products }, Cmd.none )
 
         ( GotLoginMsg loginMsg, Login loginModel ) ->
-            -- TODO Implement this
             let
                 ( newLoginModel, loginCmd ) =
                     Page.Login.update loginMsg loginModel

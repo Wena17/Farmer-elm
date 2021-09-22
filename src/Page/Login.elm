@@ -10,11 +10,11 @@ import User exposing (User)
 
 
 type alias Model =
-    { name : String, password : String }
+    { email : String, password : String }
 
 
 type Msg
-    = UsernameChanged String
+    = EmailChanged String
     | PasswordChanged String
     | SubmittedForm
     | CompletedLogin (Result Http.Error User)
@@ -22,15 +22,15 @@ type Msg
 
 init : Model
 init =
-    { name = "", password = "" }
+    { email = "", password = "" }
 
 
 view : Model -> Html Msg
 view model =
     Html.form [ onSubmit SubmittedForm ]
         [ div [ class "mb-3" ]
-            [ label [ for "usernameField", class "form-label" ] [ text "Username:" ]
-            , input [ type_ "text", class "form-control", id "usernameField", placeholder "username", onInput UsernameChanged ] []
+            [ label [ for "emailField", class "form-label" ] [ text "Email:" ]
+            , input [ type_ "email", class "form-control", id "emailField", placeholder "juan@example.com", onInput EmailChanged ] []
             ]
         , div [ class "mb-3" ]
             [ label [ for "passwordField", class "form-label" ] [ text "Password:" ]
@@ -44,8 +44,8 @@ update : Msg -> Model -> ( Model, Cmd Msg )
 update msg model =
     -- TODO: Implement
     case msg of
-        UsernameChanged s ->
-            ( { model | name = s }, Cmd.none )
+        EmailChanged s ->
+            ( { model | email = s }, Cmd.none )
 
         PasswordChanged s ->
             ( { model | password = s }, Cmd.none )
@@ -53,7 +53,7 @@ update msg model =
         SubmittedForm ->
             ( model
             , Http.post
-                { url = "http://localhost:3000/users/login"
+                { url = "http://localhost:3000/users/sign_in"
                 , body = Http.jsonBody (modelToJson model)
                 , expect = Http.expectJson CompletedLogin User.decoder
                 }
@@ -73,7 +73,7 @@ modelToJson model =
     Encode.object
         [ ( "user"
           , Encode.object
-                [ ( "username", Encode.string model.name )
+                [ ( "email", Encode.string model.email )
                 , ( "password", Encode.string model.password )
                 ]
           )

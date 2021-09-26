@@ -48,7 +48,7 @@ type alias Product =
 init : () -> ( Model, Cmd Msg )
 init _ =
     ( { page = Home, user = Guest, products = Nothing, note = Nothing }
-    , Http.get { url = "http://localhost:3000/products", expect = Http.expectJson GotProducts productsDecoder }
+    , Http.get { url = "http://localhost:3000/products.json", expect = Http.expectJson GotProducts productsDecoder }
     )
 
 
@@ -131,6 +131,10 @@ navUser model =
         Guest ->
             -- TODO Implement proper login
             a [ class "d-flex btn btn-primary btn-sm", onClick (ChangePage (Login Page.Login.init)) ] [ text "Log in" ]
+
+        Member token ->
+            -- TODO Implement proper logout
+            a [ class "d-flex btn btn-primary btn-sm" ] [ text "Log out" ]
 
 
 

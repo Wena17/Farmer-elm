@@ -5,8 +5,9 @@ import Html exposing (Html, div, input, label, text)
 import Html.Attributes exposing (class, for, id, placeholder, type_)
 import Html.Events exposing (onInput, onSubmit)
 import Http
+import Http.Detailed
 import Json.Encode as Encode
-import User exposing (User)
+import User exposing (User(..))
 
 
 type alias Model =
@@ -17,7 +18,7 @@ type Msg
     = EmailChanged String
     | PasswordChanged String
     | SubmittedForm
-    | CompletedLogin (Result Http.Error User)
+    | CompletedLogin (Result (Http.Detailed.Error String) ( Http.Metadata, User ))
 
 
 init : Model
@@ -53,15 +54,25 @@ update msg model =
         SubmittedForm ->
             ( model
             , Http.post
-                { url = "http://localhost:3000/users/sign_in"
+                { url = "http://localhost:3000/users/sign_in.json"
                 , body = Http.jsonBody (modelToJson model)
-                , expect = Http.expectJson CompletedLogin User.decoder
+                , expect = Http.Detailed.expectJson CompletedLogin User.decoder
                 }
             )
 
-        CompletedLogin (Ok user) ->
-            -- TODO Implement remembering user and redirect to home page
-            ( model, Cmd.none )
+        CompletedLogin (Ok ( metadata, user )) ->
+            case Dict.get "Authorization" metadata.headers of
+                Nothing ->
+                    -- TODO Implement notification that login failed
+                    ( Debug.log "No Token!" model, Cmd.none )
+
+                Just token ->
+                    let
+                        authenticatedUser =
+                            Member (Debug.log "Token: " token)
+                    in
+                    -- TODO Implement remembering user and redirect to home page
+                    ( model, Cmd.none )
 
         CompletedLogin (Err err) ->
             -- TODO Implement showing error message

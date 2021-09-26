@@ -2,7 +2,7 @@ module Page.Login exposing (Model, Msg, init, update, view)
 
 import Dict
 import Html exposing (Html, div, input, label, text)
-import Html.Attributes exposing (class, for, id, placeholder, type_)
+import Html.Attributes exposing (class, for, id, placeholder, type_, value)
 import Html.Events exposing (onInput, onSubmit)
 import Http
 import Http.Detailed
@@ -31,11 +31,11 @@ view model =
     Html.form [ onSubmit SubmittedForm ]
         [ div [ class "mb-3" ]
             [ label [ for "emailField", class "form-label" ] [ text "Email:" ]
-            , input [ type_ "email", class "form-control", id "emailField", placeholder "juan@example.com", onInput EmailChanged ] []
+            , input [ type_ "email", class "form-control", id "emailField", placeholder "juan@example.com", value model.email, onInput EmailChanged ] []
             ]
         , div [ class "mb-3" ]
             [ label [ for "passwordField", class "form-label" ] [ text "Password:" ]
-            , input [ type_ "password", class "form-control", id "passwordField", placeholder "***", onInput PasswordChanged ] []
+            , input [ type_ "password", class "form-control", id "passwordField", placeholder "***", value model.password, onInput PasswordChanged ] []
             ]
         , input [ type_ "submit", class "btn btn-primary" ] [ text "Login" ]
         ]
@@ -52,7 +52,7 @@ update msg model =
             ( { model | password = s }, Cmd.none )
 
         SubmittedForm ->
-            ( model
+            ( { model | password = "" }
             , Http.post
                 { url = "http://localhost:3000/users/sign_in.json"
                 , body = Http.jsonBody (modelToJson model)
@@ -61,15 +61,15 @@ update msg model =
             )
 
         CompletedLogin (Ok ( metadata, user )) ->
-            case Dict.get "Authorization" metadata.headers of
+            case Dict.get "authorization" metadata.headers of
                 Nothing ->
                     -- TODO Implement notification that login failed
-                    ( Debug.log "No Token!" model, Cmd.none )
+                    ( model, Cmd.none )
 
                 Just token ->
                     let
                         authenticatedUser =
-                            Member (Debug.log "Token: " token)
+                            Member token
                     in
                     -- TODO Implement remembering user and redirect to home page
                     ( model, Cmd.none )

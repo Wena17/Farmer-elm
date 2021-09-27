@@ -156,6 +156,19 @@ update msg model =
             { model | note = Nothing }
     in
     case ( msg, model.page ) of
+        ( ClickedLink urlRequest, _ ) ->
+            case urlRequest of
+                Browser.Internal url ->
+                    -- TODO Implement page change
+                    ( newModel, Cmd.none )
+
+                Browser.External href ->
+                    ( newModel, Nav.load href )
+
+        ( ChangedUrl url, _ ) ->
+            -- TODO Implement page change within application
+            ( newModel, Cmd.none )
+
         ( ChangePage newPage, _ ) ->
             ( { newModel | page = newPage }, Cmd.none )
 

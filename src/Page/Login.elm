@@ -13,7 +13,7 @@ import User exposing (User(..))
 
 
 type alias Model =
-    { email : String, password : String, key : Nav.Key, user : Maybe User }
+    { email : String, password : String, key : Nav.Key, user : Maybe User, note : Maybe String }
 
 
 type Msg
@@ -25,27 +25,38 @@ type Msg
 
 init : Nav.Key -> Model
 init key =
-    { email = "", password = "", key = key, user = Nothing }
+    { email = "", password = "", key = key, user = Nothing, note = Nothing }
 
 
 view : Model -> Html Msg
 view model =
-    Html.form [ onSubmit SubmittedForm ]
-        [ div [ class "mb-3" ]
-            [ label [ for "emailField", class "form-label" ] [ text "Email:" ]
-            , input [ type_ "email", class "form-control", id "emailField", placeholder "juan@example.com", value model.email, onInput EmailChanged ] []
+    div []
+        [ case model.note of
+            Nothing ->
+                div [] []
+
+            Just s ->
+                div [ class "alert alert-warning" ] [ text s ]
+        , Html.form [ onSubmit SubmittedForm ]
+            [ div [ class "mb-3" ]
+                [ label [ for "emailField", class "form-label" ] [ text "Email:" ]
+                , input [ type_ "email", class "form-control", id "emailField", placeholder "juan@example.com", value model.email, onInput EmailChanged ] []
+                ]
+            , div [ class "mb-3" ]
+                [ label [ for "passwordField", class "form-label" ] [ text "Password:" ]
+                , input [ type_ "password", class "form-control", id "passwordField", placeholder "***", value model.password, onInput PasswordChanged ] []
+                ]
+            , input [ type_ "submit", class "btn btn-primary" ] [ text "Login" ]
             ]
-        , div [ class "mb-3" ]
-            [ label [ for "passwordField", class "form-label" ] [ text "Password:" ]
-            , input [ type_ "password", class "form-control", id "passwordField", placeholder "***", value model.password, onInput PasswordChanged ] []
-            ]
-        , input [ type_ "submit", class "btn btn-primary" ] [ text "Login" ]
         ]
 
 
 update : Msg -> Model -> ( Model, Cmd Msg )
 update msg model =
-    -- TODO: Implement
+    let
+        newModel =
+            { model | note = Nothing }
+    in
     case msg of
         EmailChanged s ->
             ( { model | email = s }, Cmd.none )
@@ -54,7 +65,7 @@ update msg model =
             ( { model | password = s }, Cmd.none )
 
         SubmittedForm ->
-            ( { model | password = "" }
+            ( { newModel | password = "" }
             , Http.post
                 { url = "http://localhost:3000/users/sign_in.json"
                 , body = Http.jsonBody (modelToJson model)
@@ -65,15 +76,31 @@ update msg model =
         CompletedLogin (Ok ( metadata, user )) ->
             case Dict.get "authorization" metadata.headers of
                 Nothing ->
-                    -- TODO Implement notification that login failed
-                    ( model, Cmd.none )
+                    ( { newModel | note = Just "Authentication failed, server did not let us in." }, Cmd.none )
 
                 Just token ->
-                    ( { model | user = Just (Member token) }, Nav.pushUrl model.key (Url.Builder.absolute [] []) )
+                    ( { newModel | user = Just (Member token) }, Nav.pushUrl model.key (Url.Builder.absolute [] []) )
 
         CompletedLogin (Err err) ->
-            -- TODO Implement showing error message
-            ( model, Cmd.none )
+            let
+                n =
+                    case err of
+                        Http.Detailed.BadUrl _ ->
+                            "Client error"
+
+                        Http.Detailed.Timeout ->
+                            "Server timeout"
+
+                        Http.Detailed.NetworkError ->
+                            "Network error"
+
+                        Http.Detailed.BadStatus _ _ ->
+                            "Bad status"
+
+                        Http.Detailed.BadBody _ _ _ ->
+                            "Bad body"
+            in
+            ( { newModel | note = Just n }, Cmd.none )
 
 
 modelToJson : Model -> Encode.Value

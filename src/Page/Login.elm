@@ -13,7 +13,7 @@ import User exposing (User(..))
 
 
 type alias Model =
-    { email : String, password : String, key : Nav.Key }
+    { email : String, password : String, key : Nav.Key, user : Maybe User }
 
 
 type Msg
@@ -25,7 +25,7 @@ type Msg
 
 init : Nav.Key -> Model
 init key =
-    { email = "", password = "", key = key }
+    { email = "", password = "", key = key, user = Nothing }
 
 
 view : Model -> Html Msg
@@ -66,18 +66,17 @@ update msg model =
             case Dict.get "authorization" metadata.headers of
                 Nothing ->
                     -- TODO Implement notification that login failed
-                    ( model, Cmd.none )
+                    ( Debug.log "No token" model, Cmd.none )
 
                 Just token ->
-                    let
-                        authenticatedUser =
-                            Debug.log "Member: " (Member token)
-                    in
-                    -- TODO Implement remembering user and redirect to home page
-                    ( model, Nav.pushUrl model.key (Url.Builder.absolute [] []) )
+                    ( { model | user = Just (Member token) }, Nav.pushUrl model.key (Url.Builder.absolute [] []) )
 
         CompletedLogin (Err err) ->
             -- TODO Implement showing error message
+            let
+                e =
+                    Debug.log "Login error" err
+            in
             ( model, Cmd.none )
 
 

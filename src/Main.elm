@@ -52,7 +52,10 @@ type alias Product =
 init : () -> Url -> Nav.Key -> ( Model, Cmd Msg )
 init _ _ key =
     ( { page = Just Home, user = Guest, products = Nothing, note = Nothing, key = key }
-    , Http.get { url = "http://localhost:3000/products.json", expect = Http.expectJson GotProducts productsDecoder }
+    , Cmd.batch
+        [ Http.get { url = "http://localhost:3000/products.json", expect = Http.expectJson GotProducts productsDecoder }
+        , Nav.replaceUrl key "/"
+        ]
     )
 
 
@@ -168,7 +171,16 @@ update msg model =
                     ( newModel, Nav.load href )
 
         ( ChangedUrl url, _ ) ->
-            ( { newModel | page = urlToPage model.key url }, Cmd.none )
+            let
+                newUser =
+                    case model.page of
+                        Just (Login loginModel) ->
+                            Maybe.withDefault Guest loginModel.user
+
+                        _ ->
+                            model.user
+            in
+            ( { newModel | page = urlToPage model.key url, user = newUser }, Cmd.none )
 
         ( GotProducts (Err e), _ ) ->
             ( { newModel | note = Just (httpErrorToString e) }, Cmd.none )

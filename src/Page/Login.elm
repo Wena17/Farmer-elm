@@ -66,17 +66,13 @@ update msg model =
             case Dict.get "authorization" metadata.headers of
                 Nothing ->
                     -- TODO Implement notification that login failed
-                    ( Debug.log "No token" model, Cmd.none )
+                    ( model, Cmd.none )
 
                 Just token ->
                     ( { model | user = Just (Member token) }, Nav.pushUrl model.key (Url.Builder.absolute [] []) )
 
         CompletedLogin (Err err) ->
             -- TODO Implement showing error message
-            let
-                e =
-                    Debug.log "Login error" err
-            in
             ( model, Cmd.none )
 
 

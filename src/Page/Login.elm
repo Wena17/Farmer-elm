@@ -67,7 +67,7 @@ update msg model =
         SubmittedForm ->
             ( { newModel | password = "" }
             , Http.post
-                { url = "http://localhost:3000/users/sign_in.json"
+                { url = "http://localhost:3000/users/sign_in"
                 , body = Http.jsonBody (modelToJson model)
                 , expect = Http.Detailed.expectJson CompletedLogin User.decoder
                 }

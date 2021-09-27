@@ -1,6 +1,7 @@
 module Main exposing (..)
 
-import Browser
+import Browser exposing (UrlRequest)
+import Browser.Navigation as Nav
 import Html exposing (..)
 import Html.Attributes exposing (alt, attribute, class, id, src, type_)
 import Html.Events exposing (onClick)
@@ -8,15 +9,16 @@ import Http
 import Json.Decode as Decode exposing (Decoder)
 import Json.Decode.Extra
 import Page.Login
+import Url exposing (Url)
 import User exposing (User(..))
 
 
 main =
-    Browser.element { init = init, update = update, view = view, subscriptions = subscriptions }
+    Browser.application { init = init, update = update, view = view, subscriptions = subscriptions, onUrlRequest = ClickedLink, onUrlChange = ChangedUrl }
 
 
 type alias Model =
-    { page : Page, user : User, products : Maybe (List Product), note : Maybe String }
+    { page : Page, user : User, products : Maybe (List Product), note : Maybe String, navKey : Nav.Key }
 
 
 type Page
@@ -28,6 +30,8 @@ type Msg
     = GotProducts (Result Http.Error (List Product))
     | ChangePage Page
     | GotLoginMsg Page.Login.Msg
+    | ClickedLink UrlRequest
+    | ChangedUrl Url
 
 
 type alias Product =
@@ -45,9 +49,9 @@ type alias Product =
     }
 
 
-init : () -> ( Model, Cmd Msg )
-init _ =
-    ( { page = Home, user = Guest, products = Nothing, note = Nothing }
+init : () -> Url -> Nav.Key -> ( Model, Cmd Msg )
+init _ _ key =
+    ( { page = Home, user = Guest, products = Nothing, note = Nothing, navKey = key }
     , Http.get { url = "http://localhost:3000/products.json", expect = Http.expectJson GotProducts productsDecoder }
     )
 
@@ -61,34 +65,38 @@ subscriptions _ =
 -- View
 
 
-view : Model -> Html Msg
+view : Model -> Browser.Document Msg
 view model =
-    div []
-        [ navbar model
-        , div [ class "container" ]
-            [ case model.note of
-                Just s ->
-                    p [] [ text s ]
+    { title = "Farmer Cooperative"
+    , body =
+        [ div []
+            [ navbar model
+            , div [ class "container" ]
+                [ case model.note of
+                    Just s ->
+                        p [] [ text s ]
 
-                Nothing ->
-                    text ""
-            , case model.page of
-                Home ->
-                    case model.products of
-                        Nothing ->
-                            p [] [ text "Products not yet loaded." ]
+                    Nothing ->
+                        text ""
+                , case model.page of
+                    Home ->
+                        case model.products of
+                            Nothing ->
+                                p [] [ text "Products not yet loaded." ]
 
-                        Just prodList ->
-                            if List.length prodList > 0 then
-                                div [ class "row gap-5" ] (List.map productToCard prodList)
+                            Just prodList ->
+                                if List.length prodList > 0 then
+                                    div [ class "row gap-5" ] (List.map productToCard prodList)
 
-                            else
-                                p [] [ text "No products available." ]
+                                else
+                                    p [] [ text "No products available." ]
 
-                Login loginModel ->
-                    Html.map GotLoginMsg (Page.Login.view loginModel)
+                    Login loginModel ->
+                        Html.map GotLoginMsg (Page.Login.view loginModel)
+                ]
             ]
         ]
+    }
 
 
 productToCard : Product -> Html Msg

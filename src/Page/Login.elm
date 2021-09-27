@@ -1,5 +1,6 @@
 module Page.Login exposing (Model, Msg, init, update, view)
 
+import Browser.Navigation as Nav
 import Dict
 import Html exposing (Html, div, input, label, text)
 import Html.Attributes exposing (class, for, id, placeholder, type_, value)
@@ -7,11 +8,12 @@ import Html.Events exposing (onInput, onSubmit)
 import Http
 import Http.Detailed
 import Json.Encode as Encode
+import Url.Builder
 import User exposing (User(..))
 
 
 type alias Model =
-    { email : String, password : String }
+    { email : String, password : String, key : Nav.Key }
 
 
 type Msg
@@ -21,9 +23,9 @@ type Msg
     | CompletedLogin (Result (Http.Detailed.Error String) ( Http.Metadata, User ))
 
 
-init : Model
-init =
-    { email = "", password = "" }
+init : Nav.Key -> Model
+init key =
+    { email = "", password = "", key = key }
 
 
 view : Model -> Html Msg
@@ -69,10 +71,10 @@ update msg model =
                 Just token ->
                     let
                         authenticatedUser =
-                            Member token
+                            Debug.log "Member: " (Member token)
                     in
                     -- TODO Implement remembering user and redirect to home page
-                    ( model, Cmd.none )
+                    ( model, Nav.pushUrl model.key (Url.Builder.absolute [] []) )
 
         CompletedLogin (Err err) ->
             -- TODO Implement showing error message

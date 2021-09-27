@@ -3,13 +3,14 @@ module Main exposing (..)
 import Browser exposing (UrlRequest)
 import Browser.Navigation as Nav
 import Html exposing (..)
-import Html.Attributes exposing (alt, attribute, class, id, src, type_)
+import Html.Attributes exposing (alt, attribute, class, href, id, src, type_)
 import Html.Events exposing (onClick)
 import Http
 import Json.Decode as Decode exposing (Decoder)
 import Json.Decode.Extra
 import Page.Login
 import Url exposing (Url)
+import Url.Parser as Parser
 import User exposing (User(..))
 
 
@@ -18,7 +19,7 @@ main =
 
 
 type alias Model =
-    { page : Page, user : User, products : Maybe (List Product), note : Maybe String, navKey : Nav.Key }
+    { page : Maybe Page, user : User, products : Maybe (List Product), note : Maybe String, key : Nav.Key }
 
 
 type Page
@@ -28,7 +29,6 @@ type Page
 
 type Msg
     = GotProducts (Result Http.Error (List Product))
-    | ChangePage Page
     | GotLoginMsg Page.Login.Msg
     | ClickedLink UrlRequest
     | ChangedUrl Url
@@ -51,7 +51,7 @@ type alias Product =
 
 init : () -> Url -> Nav.Key -> ( Model, Cmd Msg )
 init _ _ key =
-    ( { page = Home, user = Guest, products = Nothing, note = Nothing, navKey = key }
+    ( { page = Just Home, user = Guest, products = Nothing, note = Nothing, key = key }
     , Http.get { url = "http://localhost:3000/products.json", expect = Http.expectJson GotProducts productsDecoder }
     )
 
@@ -79,7 +79,7 @@ view model =
                     Nothing ->
                         text ""
                 , case model.page of
-                    Home ->
+                    Just Home ->
                         case model.products of
                             Nothing ->
                                 p [] [ text "Products not yet loaded." ]
@@ -91,8 +91,11 @@ view model =
                                 else
                                     p [] [ text "No products available." ]
 
-                    Login loginModel ->
+                    Just (Login loginModel) ->
                         Html.map GotLoginMsg (Page.Login.view loginModel)
+
+                    Nothing ->
+                        div [ class "alert alert-warning" ] [ text "This page does not seem to exist." ]
                 ]
             ]
         ]
@@ -126,7 +129,7 @@ navbar model =
             , div [ class "collapse navbar-collapse", id "navbarSupportedContent" ]
                 [ ul [ class "navbar-nav me-auto mb-2 mb-lg-0" ]
                     -- TODO Disable page link of current page
-                    [ li [ class "nav-item" ] [ a [ class "nav-link active", onClick (ChangePage Home) ] [ text "Home" ] ]
+                    [ li [ class "nav-item" ] [ a [ class "nav-link active", href "/" ] [ text "Home" ] ]
                     ]
                 ]
             , navUser model
@@ -138,11 +141,11 @@ navUser model =
     case model.user of
         Guest ->
             -- TODO Implement proper login
-            a [ class "d-flex btn btn-primary btn-sm", onClick (ChangePage (Login Page.Login.init)) ] [ text "Log in" ]
+            a [ class "d-flex btn btn-primary btn-sm", href "/login" ] [ text "Log in" ]
 
         Member token ->
             -- TODO Implement proper logout
-            a [ class "d-flex btn btn-primary btn-sm" ] [ text "Log out" ]
+            a [ class "d-flex btn btn-primary btn-sm", href "/logout" ] [ text "Log out" ]
 
 
 
@@ -159,18 +162,13 @@ update msg model =
         ( ClickedLink urlRequest, _ ) ->
             case urlRequest of
                 Browser.Internal url ->
-                    -- TODO Implement page change
-                    ( newModel, Cmd.none )
+                    ( newModel, Nav.pushUrl model.key (Url.toString url) )
 
                 Browser.External href ->
                     ( newModel, Nav.load href )
 
         ( ChangedUrl url, _ ) ->
-            -- TODO Implement page change within application
-            ( newModel, Cmd.none )
-
-        ( ChangePage newPage, _ ) ->
-            ( { newModel | page = newPage }, Cmd.none )
+            ( { newModel | page = urlToPage model.key url }, Cmd.none )
 
         ( GotProducts (Err e), _ ) ->
             ( { newModel | note = Just (httpErrorToString e) }, Cmd.none )
@@ -178,15 +176,16 @@ update msg model =
         ( GotProducts (Ok products), _ ) ->
             ( { newModel | products = Just products }, Cmd.none )
 
-        ( GotLoginMsg loginMsg, Login loginModel ) ->
+        ( GotLoginMsg loginMsg, Just (Login loginModel) ) ->
             let
                 ( newLoginModel, loginCmd ) =
                     Page.Login.update loginMsg loginModel
             in
-            ( { newModel | page = Login newLoginModel }, Cmd.map GotLoginMsg loginCmd )
+            ( { newModel | page = Just (Login newLoginModel) }, Cmd.map GotLoginMsg loginCmd )
 
         ( _, _ ) ->
             -- Silently ignore messages for the wrong page.
+            -- TODO Implement page = Nothing -> 404
             ( newModel, Cmd.none )
 
 
@@ -207,6 +206,17 @@ httpErrorToString e =
 
         Http.BadBody s ->
             "Bad body: " ++ s
+
+
+urlToPage : Nav.Key -> Url -> Maybe Page
+urlToPage key url =
+    Parser.parse
+        (Parser.oneOf
+            [ Parser.map Home Parser.top
+            , Parser.map (Login (Page.Login.init key)) (Parser.s "login")
+            ]
+        )
+        url
 
 
 

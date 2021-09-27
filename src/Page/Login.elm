@@ -94,8 +94,12 @@ update msg model =
                         Http.Detailed.NetworkError ->
                             "Network error"
 
-                        Http.Detailed.BadStatus _ _ ->
-                            "Bad status"
+                        Http.Detailed.BadStatus meta _ ->
+                            if meta.statusCode == 401 then
+                                "Authentication failed"
+
+                            else
+                                "Bad status code: " ++ String.fromInt meta.statusCode
 
                         Http.Detailed.BadBody _ _ _ ->
                             "Bad body"

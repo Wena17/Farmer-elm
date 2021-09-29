@@ -53,7 +53,7 @@ init : () -> Url -> Nav.Key -> ( Model, Cmd Msg )
 init _ _ key =
     ( { page = Just Home, user = Guest, products = Nothing, note = Nothing, key = key }
     , Cmd.batch
-        [ Http.get { url = "http://localhost:3000/products.json", expect = Http.expectJson GotProducts productsDecoder }
+        [ Http.get { url = "/products", expect = Http.expectJson GotProducts productsDecoder }
         , Nav.replaceUrl key "/"
         ]
     )

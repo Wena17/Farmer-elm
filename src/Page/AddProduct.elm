@@ -88,4 +88,24 @@ view model =
 
 update : Msg -> Model -> ( Model, Cmd Msg )
 update msg model =
-    ( model, Cmd.none )
+    case msg of
+        SubmittedForm ->
+            ( model, Cmd.none )
+
+        ProdNameChanged s ->
+            ( { model | name = s }, Cmd.none )
+
+        ProdDescFieldChanged s ->
+            ( { model | description = s }, Cmd.none )
+
+        ProdTypeChanged s ->
+            ( { model | prodType = s }, Cmd.none )
+
+        QtyChanged s ->
+            ( { model | qty = String.toFloat s |> Maybe.withDefault model.qty }, Cmd.none )
+
+        UnitChanged s ->
+            ( { model | unit = s }, Cmd.none )
+
+        PriceChanged s ->
+            ( { model | price = String.toFloat s |> Maybe.withDefault model.price }, Cmd.none )

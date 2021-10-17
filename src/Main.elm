@@ -202,6 +202,14 @@ update msg model =
             in
             ( { newModel | page = Just (Login newLoginModel) }, Cmd.map GotLoginMsg loginCmd )
 
+        ( AddProductMsg prodMsg, Just (AddProduct prodModel) ) ->
+            -- TODO Simplify so we don't have to repeat this for every page.
+            let
+                ( newProdModel, prodCmd ) =
+                    Page.AddProduct.update prodMsg prodModel
+            in
+            ( { newModel | page = Just (AddProduct newProdModel) }, Cmd.map AddProductMsg prodCmd )
+
         ( _, _ ) ->
             -- Silently ignore messages for the wrong page.
             -- TODO Implement page = Nothing -> 404

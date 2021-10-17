@@ -13,7 +13,12 @@ import User exposing (User(..))
 
 
 type alias Model =
-    { email : String, password : String, key : Nav.Key, user : Maybe User, note : Maybe String }
+    { email : String
+    , password : String
+    , key : Nav.Key
+    , user : Maybe User
+    , note : Maybe String
+    }
 
 
 type Msg
@@ -25,7 +30,12 @@ type Msg
 
 init : Nav.Key -> Model
 init key =
-    { email = "", password = "", key = key, user = Nothing, note = Nothing }
+    { email = ""
+    , password = ""
+    , key = key
+    , user = Nothing
+    , note = Nothing
+    }
 
 
 view : Model -> Html Msg

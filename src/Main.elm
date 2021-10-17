@@ -8,9 +8,10 @@ import Html.Events exposing (onClick)
 import Http
 import Json.Decode as Decode exposing (Decoder)
 import Json.Decode.Extra
+import Page.AddProduct
 import Page.Login
 import Url exposing (Url)
-import Url.Parser as Parser
+import Url.Parser as Parser exposing ((</>))
 import User exposing (User(..))
 
 
@@ -25,11 +26,13 @@ type alias Model =
 type Page
     = Home
     | Login Page.Login.Model
+    | AddProduct Page.AddProduct.Model
 
 
 type Msg
     = GotProducts (Result Http.Error (List Product))
     | GotLoginMsg Page.Login.Msg
+    | AddProductMsg Page.AddProduct.Msg
     | ClickedLink UrlRequest
     | ChangedUrl Url
 
@@ -97,6 +100,9 @@ view model =
                     Just (Login loginModel) ->
                         Html.map GotLoginMsg (Page.Login.view loginModel)
 
+                    Just (AddProduct addProductModel) ->
+                        Html.map AddProductMsg (Page.AddProduct.view addProductModel)
+
                     Nothing ->
                         div [ class "alert alert-warning" ] [ text "This page does not seem to exist." ]
                 ]
@@ -131,8 +137,9 @@ navbar model =
                 [ span [ class "navbar-toggler-icon" ] [] ]
             , div [ class "collapse navbar-collapse", id "navbarSupportedContent" ]
                 [ ul [ class "navbar-nav me-auto mb-2 mb-lg-0" ]
-                    -- TODO Disable page link of current page
+                    -- TODO Disable page link of current page and highlight as active
                     [ li [ class "nav-item" ] [ a [ class "nav-link active", href "/" ] [ text "Home" ] ]
+                    , li [ class "nav-item" ] [ a [ class "nav-link", href "/products/add" ] [ text "Add Product" ] ]
                     ]
                 ]
             , navUser model
@@ -226,6 +233,7 @@ urlToPage key url =
         (Parser.oneOf
             [ Parser.map Home Parser.top
             , Parser.map (Login (Page.Login.init key)) (Parser.s "login")
+            , Parser.map (AddProduct (Page.AddProduct.init key)) (Parser.s "products" </> Parser.s "add")
             ]
         )
         url

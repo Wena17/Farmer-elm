@@ -3,5 +3,5 @@ elm-stuff
 # elm-repl generated files
 repl-temp-*
 # Compiled JS
-main.js
+*.js
 node_modules
